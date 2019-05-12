@@ -38,8 +38,7 @@ class Neurona:
                 error = salida_deseada - resultado                                                
                 if error != 0:
                     contador_de_errores += 1
-                    self.ajuste_pesos(vector_de_entrada,error)
-               
+                    self.ajuste_pesos(vector_de_entrada,error)               
             if contador_de_errores == 0:
                 break
 
@@ -47,6 +46,7 @@ class Neurona:
         net = self.calcular_net(datos, self.pesos)
         print(net)
         print(self.escalon(net))
+
 
 
 perceptron = Neurona()
