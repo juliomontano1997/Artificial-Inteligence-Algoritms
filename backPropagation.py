@@ -1,4 +1,6 @@
 
+import Backpropagation from BackPropagationClass
+
 def multiply_matrices(A, B):    
     if len(A) != len(B):
         print("Las matrices no son compatibles")
@@ -21,6 +23,7 @@ def multiply_matrix_number(scalar, matrix):
     return matrix
 
 
+
 def substractMatrix(matrixWeight, updatedMatrixWeights): #substract matrix values, they must be the same length.
     resultMatrix = []
     for i,weight in enumerate(matrix):
@@ -37,6 +40,6 @@ def delta(predict, actual): #actual is our expected output
 def error(predict, actual):
     1/2*(predict-actual)**2
 
-def train(dataSet, outputs, hiden_nodes, ouputs_nodes):
-    
 
+def main():
+    init = Propagation():
