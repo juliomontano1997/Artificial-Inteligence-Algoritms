@@ -35,14 +35,11 @@ matrix = [
 
 def substractMatrix(matrixWeight, updatedMatrixWeights): #substract matrix values, they must be the same length.
     resultMatrix = []
-
     for i,weight in enumerate(matrix):
         values = []
         for j,value in enumerate(weight):
-            values.append( matrixWeight[i][j]-matrixUpdated[i][j] )
-        
+            values.append( matrixWeight[i][j]-updatedMatrixWeights[i][j] )        
         resultMatrix.append( values )
-
     print(resultMatrix)
 
 substractMatrix(matrix, matrixUpdated)
