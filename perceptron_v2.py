@@ -52,3 +52,4 @@ class Neurona:
 perceptron = Neurona()
 perceptron.entrenar([[[1, 0, 0], 0], [[1, 0, 1], 0], [[1, 1, 0], 0], [[1, 1, 1], 1]])
 perceptron.evaluar([1,1,1])
+x = input("Press a key")

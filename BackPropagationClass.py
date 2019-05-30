@@ -1,4 +1,5 @@
 import random
+import math
 
 class Backpropagation:
     def __init__(self, dataSet, expectedOutputs, n_hiddenNodes, n_outputNodes):
@@ -6,26 +7,32 @@ class Backpropagation:
         self.expectedOutputs = expectedOutputs
         self.n_hiddenNodes = n_hiddenNodes
         self.n_outputNodes = n_outputNodes
-        self.a = 0.25
-        self.hidden_weights = []
-        self.outputs_weights = []
-        self.entry_data = []
-        self.hidden_data = []
-        self.output_data = []
-        self.error_obtained = 0
+        self.learning_rate= 0.01
+        self.Wh = []
+        self.Wo = []
+        self.I = []
+        self.H = []
+        self.O = []
+        self.error_obtained = 1
         
     def multiply_matrices(self, A, B):    
-        '''if len(A) != len(B):
-            print("Las matrices no son compatibles")
-            exit()        '''
-        
-        result = []                                
-        for i in range(0,len(B[0])):
-            sumatory = 0
-            for j in range(0,len(A)):                        
-                sumatory += A[j]*B[j][i]
-            result.append(sumatory)
-        return result
+        A_R = len(A)    
+        A_C = len(A[0])
+        B_R = len(B)
+        B_C = len(B[0]) 
+        if (A_C!= B_R):
+            print("No se pueden multiplicar")
+            exit()
+        new_m = []
+        for i in range(0, A_R):
+            new_r = []
+            for y in range(0, B_C):
+                result = 0
+                for j in range(0, A_C):
+                    result += A[i][j]*B[j][y]
+                new_r.append(result)            
+            new_m.append(new_r)                
+        return new_m
 
     def multiply_matrix_number(self, scalar, matrix):
         rows = len(matrix)
@@ -40,15 +47,21 @@ class Backpropagation:
         for i,weight in enumerate(matrixWeight):
             values = []
             for j,value in enumerate(weight):
-                values.append( matrixWeight[i][j]-updatedMatrixWeights[i][j] )        
+                values.append(matrixWeight[i][j]-updatedMatrixWeights[i][j])        
             resultMatrix.append( values )
-        print(resultMatrix)
+        return resultMatrix
 
-    def delta(self, predict, actual): #actual is our expected output
-        return predict - actual
+    def delta(self,net_results, actual): #actual is our expected output
+        delt = 0
+        for predict in net_results:
+            delt += actual  - predict           
+        return delt
 
-    def error(self, predict, actual):
-        return 1/2*( (predict-actual)**2 )
+    def error(self, net_results, actual):
+        err = 0
+        for predict in net_results: 
+            err += 0.5*((predict-actual)**2 )     
+        return err
 
     def generate_random_matrix(self, rows, colums):
         matrix = []
@@ -59,28 +72,75 @@ class Backpropagation:
             matrix.append(row)
         return matrix 
     
-    def generate_array(self, elements):
-        new_array = []
-        for i in range(0, elements):
-            new_array.append(0)
-        return new_array
+    def array_to_matrix(self, array):                      
+        matrix = []
+        for i in array:
+            matrix.append([i])
+        return matrix
+
+    def matrix_to_array(self, matrix):
+        array = []
+        for i in matrix:
+            array.append(i[0])
+        return array
+
+    def apply_sigmoide(self,matrix):          
+        Q_R = len(matrix)                
+        Q_F = len(matrix[0])
+        for i in range(0, Q_R):
+            for j in range(0, Q_F):
+                matrix[i][j] = 1/ (1+ math.exp(-matrix[i][j]))       
+        return matrix
     
-    def train(self):
-        self.hidden_weights = [[0.11, 0.12], [0.21, 0.08]]#self.generate_random_matrix(len(self.dataSet[0]), self.n_hiddenNodes)
-        self.outputs_weights = [[0.14],[0.15]]#self.generate_random_matrix(self.n_hiddenNodes, self.n_outputNodes)                
-        
-        self.hidden_data = self.generate_array(self.n_hiddenNodes)
-        self.output_data = self.generate_array(self.n_outputNodes)
+    def apply_bias(self, matrix, bias):
+        Q_R = len(matrix)                
+        Q_F = len(matrix[0])
+        for i in range(0, Q_R):
+            for j in range(0, Q_F):
+                matrix[i][j] = matrix[i][j] + bias        
+        return matrix
+                
 
-        for index, value in enumerate(self.dataSet):            
-            self.hidden_data = self.multiply_matrices(value, self.hidden_weights)
-            self.output_data = self.multiply_matrices(self.hidden_data, self.outputs_weights)
-            self.error_obtained =  self.error(self.output_data[0], self.expectedOutputs[index])                        
-            print(self.error_obtained)
+    def train(self): 
+        self.Wh = self.generate_random_matrix(len(self.dataSet[0]), self.n_hiddenNodes)
+        self.Wo = self.generate_random_matrix(self.n_hiddenNodes, self.n_outputNodes)        
+        self.bias_1 = 1
+        self.bias_2 = 1        
+        #iterations = 0
+        while self.error_obtained > 0.001 :                                                  
+            for index, I in enumerate(self.dataSet):                
+                self.H = self.multiply_matrices([I], self.Wh)
+                #self.H = self.apply_bias(self.H,self.bias_1) 
+                #self.H = self.apply_sigmoide(self.H)               
+                self.O = self.multiply_matrices(self.H, self.Wo) 
+                #self.O = self.apply_bias(self.O,self.bias_2) 
+                #self.O = self.apply_sigmoide(self.O)                                                                                   
+                self.error_obtained = self.error(self.O[0], self.expectedOutputs[index])                
+                delta = self.delta(self.O[0], self.expectedOutputs[index])                    
+                h_matrix = self.array_to_matrix(self.H[0])
+                wo_copy = self.Wo
+                self.Wo = self.substractMatrix(self.Wo, self.multiply_matrix_number(self.learning_rate*delta, h_matrix))        
+                i_matrix = self.array_to_matrix(I)                                    
+                self.Wh = self.substractMatrix(self.Wh,self.multiply_matrices(self.multiply_matrix_number(self.learning_rate*delta,i_matrix),[self.matrix_to_array(wo_copy)])) 
+            #iterations +=1
 
-x = Backpropagation([[2,3]], [1],2, 1)
+    def evaluate(self, entry):
+        self.H = self.multiply_matrices([entry], self.Wh)
+        self.H = self.apply_bias(self.H,self.bias_1) 
+        self.H = self.apply_sigmoide(self.H)               
+        self.O = self.multiply_matrices(self.H, self.Wo) 
+        self.O = self.apply_bias(self.O,self.bias_2) 
+        self.O = self.apply_sigmoide(self.O)     
+        print(self.O)                
+
+
+x = Backpropagation([[1,1],[0,1],[1,0],[0,0]], [1,0,0,0],6, 1)
 x.train()
-        
+x.evaluate([1,1])
+x.evaluate([0,1])
+x.evaluate([1,0])
+x.evaluate([0,0])
+c = input("Press a key")
 
     
 
